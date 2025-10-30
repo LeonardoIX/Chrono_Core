@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement; // Necessário para recarregar a cena
 
 public class scrPlayer : MonoBehaviour
 {
@@ -7,14 +8,20 @@ public class scrPlayer : MonoBehaviour
     [Header("Movement Properties")]
     public float Speed = 5f;
     public float JumpForce = 10f;
-    public int maxJumps = 2; // Número máximo de pulos (1=pulo simples, 2=pulo duplo)
+    public int maxJumps = 2;
+
+    //Health Properties
+    [Header("Health & Damage")]
+    public int maxHealth = 5;
+    private int currentHealth;
+    private bool isDead = false;
 
     // State Variables
     private Rigidbody2D rig;
     private Animator anim;
-    private int currentJumpCount = 0; // Contador de pulos usados no ar
+    private int currentJumpCount = 0;
     
-    // Variável para a Layer do chão (configure no Inspector para a Layer correta)
+    // Variável para a Layer do chão
     public LayerMask groundLayer; 
 
     // Start é chamado uma vez antes do primeiro frame
@@ -23,53 +30,56 @@ public class scrPlayer : MonoBehaviour
         rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
 
-        // Boa prática: se o Rigidbody2D não existir, desabilita o script
         if (rig == null)
         {
-            Debug.LogError("Rigidbody2D not found! Please add a Rigidbody2D component to the player.");
+            Debug.LogError("Rigidbody2D not found!");
             enabled = false;
         }
+
+        currentHealth = maxHealth;
+        isDead = false;
     }
 
-    // FixedUpdate é chamado em intervalos de tempo fixos, ideal para Física (Rigidbody)
+    // FixedUpdate
     void FixedUpdate()
     {
+        // Não se mova se estiver morto
+        if (isDead)
+        {
+            rig.velocity = new Vector2(0, rig.velocity.y);
+            anim.SetBool("walk", false);
+            return;
+        }
+
         Move();
     }
 
-    // Update é chamado uma vez por frame, ideal para Inputs
+    // Update
     void Update()
     {
-        JumpInput();
+        // Não pule se estiver morto
+        if (isDead) return; 
 
-        // --- ADIÇÃO IMPORTANTE ---
-        // Envia a velocidade vertical (Y) do Rigidbody para o parâmetro "velocityY" do Animator.
-        // É isso que vai controlar as transições para o "playerFall".
+        JumpInput();
         anim.SetFloat("velocityY", rig.velocity.y);
     }
 
     void Move()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-
-        // 1. Movimentação (usando Rigidbody2D.velocity)
-        // Move o personagem horizontalmente, mas mantém a velocidade vertical atual (rig.velocity.y)
         rig.velocity = new Vector2(horizontalInput * Speed, rig.velocity.y);
 
-        // 2. Lógica de Animação e Virar (Flip)
         if (horizontalInput != 0f)
         {
             anim.SetBool("walk", true);
             
             if (horizontalInput > 0f)
             {
-                // Rotação normal (olhando para a direita)
-                transform.eulerAngles = new Vector3(0f, 0f, 0f);
+                transform.eulerAngles = new Vector3(0f, 0f, 0f); // Direita
             }
             else // horizontalInput < 0f
             {
-                // Rotação invertida em Y (olhando para a esquerda)
-                transform.eulerAngles = new Vector3(0f, 180f, 0f);
+                transform.eulerAngles = new Vector3(0f, 180f, 0f); // Esquerda
             }
         }
         else
@@ -82,19 +92,11 @@ public class scrPlayer : MonoBehaviour
     {
         if (Input.GetButtonDown("Jump"))
         {
-            if (currentJumpCount < maxJumps) // Verifica se o jogador ainda tem pulos disponíveis
+            if (currentJumpCount < maxJumps)
             {
-                // Resetar a velocidade vertical é crucial para garantir que o pulo duplo
-                // tenha a força total, mesmo que o jogador esteja caindo.
                 rig.velocity = new Vector2(rig.velocity.x, 0f);
-
-                // Aplica a força do pulo
                 rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
-
-                // Incrementa o contador de pulos usados
                 currentJumpCount++;
-                
-                // Ativa a animação de pulo
                 anim.SetBool("jump", true);
             }
         }
@@ -102,12 +104,61 @@ public class scrPlayer : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Para a sua lógica que usa a Layer 6:
-        if(collision.gameObject.layer == 6) // Layer 6 deve ser configurada como "Ground"
+        // Checagem de colisão com o chão
+        if(collision.gameObject.layer == 6) // Layer 6 deve ser "Ground"
         {
-            // Resetar o contador de pulos e o estado da animação ao tocar o chão
             currentJumpCount = 0;
             anim.SetBool("jump", false);
         }
+    }
+
+    // DANO E VIDA
+    public void TakeDamage(int damage)
+    {
+        // Se já estiver morto, não faça nada
+        if (isDead) return;
+
+        // Reduz a vida
+        currentHealth -= damage;
+        
+        Debug.Log("Player Health: " + currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Die();
+        }
+        else
+        {
+            // Dispara o Trigger da sua animação de dano
+            anim.SetTrigger("takeDamage"); // <-- MUDE "takeDamage" para o nome do seu trigger
+        }
+    }
+
+    private void Die()
+    {
+        isDead = true;
+        anim.SetTrigger("death"); // Dispara a animação de morte
+
+        // Desativa o colisor do jogador
+        GetComponent<Collider2D>().enabled = false;
+        
+        // Para o jogador completamente
+        rig.velocity = Vector2.zero;
+        rig.gravityScale = 0f; // Impede que ele caia após morrer
+
+        // Inicia a rotina para reiniciar o nível após um atraso
+        StartCoroutine(HandleDeath(2f)); // Espera 2 segundos
+    }
+
+
+    /// Corotina para esperar um tempo e depois reiniciar a cena.
+
+    private IEnumerator HandleDeath(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        // Recarrega a cena atual
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
