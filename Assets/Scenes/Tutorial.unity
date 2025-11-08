@@ -1645,6 +1645,7 @@ GameObject:
   - component: {fileID: 1704268365}
   - component: {fileID: 1704268364}
   - component: {fileID: 1704268368}
+  - component: {fileID: 1704268369}
   m_Layer: 0
   m_Name: Rift
   m_TagString: Enemy
@@ -1820,6 +1821,28 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1704268369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1704268363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e67f0ee1e2b7140ba67bddbf41101e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyFollow
+  speed: 3
+  stopDistance: 0.5
+  jumpForce: 10
+  groundCheck: {fileID: 0}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  damage: 1
+  attackCooldown: 1
+  player: {fileID: 0}
 --- !u!1 &1972600260
 GameObject:
   m_ObjectHideFlags: 0
@@ -4300,6 +4323,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6745432615034843611, guid: aa2747b8dc5198e4e9323026d19e67aa, type: 3}
       propertyPath: m_Name
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 6745432615034843611, guid: aa2747b8dc5198e4e9323026d19e67aa, type: 3}
+      propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8231741138572974706, guid: aa2747b8dc5198e4e9323026d19e67aa, type: 3}
