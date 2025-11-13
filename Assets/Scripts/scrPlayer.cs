@@ -46,7 +46,7 @@ public class scrPlayer : MonoBehaviour
         // Não se mova se estiver morto
         if (isDead)
         {
-            rig.velocity = new Vector2(0, rig.velocity.y);
+            rig.linearVelocity = new Vector2(0, rig.linearVelocity.y);
             anim.SetBool("walk", false);
             return;
         }
@@ -61,13 +61,13 @@ public class scrPlayer : MonoBehaviour
         if (isDead) return; 
 
         JumpInput();
-        anim.SetFloat("velocityY", rig.velocity.y);
+        anim.SetFloat("velocityY", rig.linearVelocity.y);
     }
 
     void Move()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-        rig.velocity = new Vector2(horizontalInput * Speed, rig.velocity.y);
+        rig.linearVelocity = new Vector2(horizontalInput * Speed, rig.linearVelocity.y);
 
         if (horizontalInput != 0f)
         {
@@ -94,7 +94,7 @@ public class scrPlayer : MonoBehaviour
         {
             if (currentJumpCount < maxJumps)
             {
-                rig.velocity = new Vector2(rig.velocity.x, 0f);
+                rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
                 rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
                 currentJumpCount++;
                 anim.SetBool("jump", true);
@@ -144,7 +144,7 @@ public class scrPlayer : MonoBehaviour
         GetComponent<Collider2D>().enabled = false;
         
         // Para o jogador completamente
-        rig.velocity = Vector2.zero;
+        rig.linearVelocity = Vector2.zero;
         rig.gravityScale = 0f; // Impede que ele caia após morrer
 
         // Inicia a rotina para reiniciar o nível após um atraso
