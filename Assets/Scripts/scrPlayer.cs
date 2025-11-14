@@ -20,6 +20,7 @@ public class scrPlayer : MonoBehaviour
     private Rigidbody2D rig;
     private Animator anim;
     private int currentJumpCount = 0;
+
     
     // Variável para a Layer do chão
     public LayerMask groundLayer; 
@@ -67,26 +68,26 @@ public class scrPlayer : MonoBehaviour
     void Move()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-        rig.linearVelocity = new Vector2(horizontalInput * Speed, rig.linearVelocity.y);
 
-        if (horizontalInput != 0f)
-        {
-            anim.SetBool("walk", true);
-            
-            if (horizontalInput > 0f)
-            {
-                transform.eulerAngles = new Vector3(0f, 0f, 0f); // Direita
-            }
-            else // horizontalInput < 0f
-            {
-                transform.eulerAngles = new Vector3(0f, 180f, 0f); // Esquerda
-            }
-        }
-        else
-        {
-            anim.SetBool("walk", false);
-        }
-    }
+        rig.velocity = new Vector2(horizontalInput * Speed, rig.velocity.y);
+
+       if(horizontalInput > 0f)
+       {
+        anim.SetBool("walk", true);
+        transform.eulerAngles = new Vector3(0f, 0f, 0f);
+       }
+
+       if(horizontalInput < 0f)
+       {
+        anim.SetBool("walk", true);
+        transform.eulerAngles = new Vector3(0f, 180f, 0f);
+       }
+
+       if(horizontalInput == 0f)
+       {
+        anim.SetBool("walk", false);
+       }
+       }
 
     void JumpInput()
     {
@@ -161,4 +162,8 @@ public class scrPlayer : MonoBehaviour
         // Recarrega a cena atual
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
+
+    
+
 }
+
