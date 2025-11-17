@@ -69,7 +69,7 @@ public class scrPlayer : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        rig.velocity = new Vector2(horizontalInput * Speed, rig.velocity.y);
+        rig.linearVelocity = new Vector2(horizontalInput * Speed, rig.linearVelocity.y);
 
        if(horizontalInput > 0f)
        {
