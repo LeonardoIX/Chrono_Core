@@ -68,7 +68,7 @@ public class PlayerCombat : MonoBehaviour
         foreach(Collider2D enemy in hitEnemies)
         {
             // Tenta pegar o script do inimigo
-            Enemy enemyScript = enemy.GetComponent<Enemy>();
+            EnemyAI enemyScript = enemy.GetComponent<EnemyAI>();
             
             if(enemyScript != null)
             {

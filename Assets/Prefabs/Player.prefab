@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7849016030319488501}
   - component: {fileID: 4389728152627654869}
   - component: {fileID: 4287171385058947254}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -32,12 +32,11 @@ Transform:
   m_GameObject: {fileID: 415584481788638321}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.75, y: 8.82, z: 0}
+  m_LocalPosition: {x: -0.76, y: 8.96, z: 0}
   m_LocalScale: {x: 5.4874706, y: 5.4874706, z: 5.4874706}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3014006845820116749}
-  - {fileID: 4610288661693122349}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3082995852097955824
@@ -132,7 +131,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.059240185, y: -0.0017162971}
+  m_Offset: {x: 0.059240185, y: 0.0040985867}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -142,7 +141,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.14444114, y: 0.20911855}
+  m_Size: {x: 0.14444114, y: 0.19748877}
   m_EdgeRadius: 0
 --- !u!50 &208101386629973520
 Rigidbody2D:
@@ -160,7 +159,7 @@ Rigidbody2D:
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 3
-  m_Material: {fileID: 6200000, guid: e378339c9c705fc4483aa82116b25eda, type: 2}
+  m_Material: {fileID: 6200000, guid: a972ce7bcd183a14d99579f1b5806676, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -186,11 +185,9 @@ MonoBehaviour:
   Speed: 7
   JumpForce: 10.5
   maxJumps: 2
-  groundCheck: {fileID: 0}
-  groundCheckSize: {x: 0.5, y: 0.1}
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   maxHealth: 5
   isDead: 0
 --- !u!95 &7849016030319488501
@@ -229,12 +226,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
   animator: {fileID: 7849016030319488501}
   attackPoint: {fileID: 3014006845820116749}
-  attackRange: 0.2
   enemyLayers:
     serializedVersion: 2
     m_Bits: 1024
-  attackDamage: 40
-  attackRate: 2
+  attackDamage: 1
+  attackSize: {x: 2, y: 1}
+  maxComboDelay: 1
 --- !u!96 &4287171385058947254
 TrailRenderer:
   serializedVersion: 3
@@ -363,37 +360,6 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 0
   m_ApplyActiveColorSpace: 1
---- !u!1 &4309795592244774655
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4610288661693122349}
-  m_Layer: 0
-  m_Name: GroundCheck
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4610288661693122349
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4309795592244774655}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3132473608731109747}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7977989809531680749
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,7 +385,7 @@ Transform:
   m_GameObject: {fileID: 7977989809531680749}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.286, y: -0.009, z: 0}
+  m_LocalPosition: {x: 0.276, y: -0.007, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
