@@ -4,53 +4,64 @@ using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
 {
-    
     public Animator animator;
-
     public Transform attackPoint;
     public float attackRange = 0.5f;
     public LayerMask enemyLayers;
-
     public int attackDamage = 40;
-
     public float attackRate = 2f;
-    float nextAttackTime = 0f;
+    
+    private float nextAttackTime = 0f;
+    private scrPlayer playerScript; // Referência para verificar se está morto
 
-    // Update is called once per frame
+    void Start()
+    {
+        playerScript = GetComponent<scrPlayer>();
+    }
+
     void Update()
     {
-        if(Time.time >= nextAttackTime){
-             if(Input.GetMouseButtonDown(0))
+        // Não ataca se estiver morto
+        if (playerScript != null && playerScript.isDead) return;
+
+        if(Time.time >= nextAttackTime)
         {
-            Attack();
-            nextAttackTime = Time.time + 1f / attackRate;
-         }
+            if(Input.GetMouseButtonDown(0))
+            {
+                StartAttackAnimation();
+                nextAttackTime = Time.time + 1f / attackRate;
+            }
         }
     }
 
-    void Attack()
+    void StartAttackAnimation()
     {
-        //Começar a animação de ataque
+        // Apenas toca a animação. O dano não é aplicado aqui.
         animator.SetTrigger("Attack");
-        
-        //Detectar inimigos na hitbox do ataque
+    }
+
+    // ESSA FUNÇÃO DEVE SER CHAMADA PELA ANIMAÇÃO (Animation Event)
+    public void TriggerAttackDamage()
+    {
+        if (attackPoint == null) return;
+
+        // Detectar inimigos na hitbox do ataque
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
-        //Dar dano nos inimigos que estiverem no range.
+        // Dar dano
         foreach(Collider2D enemy in hitEnemies)
         {
-            enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
+            // Verifica se o inimigo tem script de vida (ajuste "Enemy" para o nome do seu script)
+            if(enemy.GetComponent<Enemy>() != null)
+            {
+                enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
+            }
         }
-
     }
 
-    void OnDrawGizmosSelected(){
-
-        if(attackPoint == null)
-            return;
-        
-
+    void OnDrawGizmosSelected()
+    {
+        if(attackPoint == null) return;
         Gizmos.DrawWireSphere(attackPoint.position, attackRange);
     }
-
 }

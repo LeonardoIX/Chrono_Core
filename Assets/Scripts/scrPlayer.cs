@@ -1,169 +1,148 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Necessário para recarregar a cena
+using UnityEngine.SceneManagement;
 
 public class scrPlayer : MonoBehaviour
 {
-    // Movement Properties
     [Header("Movement Properties")]
     public float Speed = 5f;
     public float JumpForce = 10f;
     public int maxJumps = 2;
 
-    //Health Properties
+    [Header("Detection")]
+    public LayerMask groundLayer; // Configure isso no Inspector!
+
     [Header("Health & Damage")]
     public int maxHealth = 5;
     private int currentHealth;
-    private bool isDead = false;
+    public bool isDead = false;
 
-    // State Variables
+    // Variáveis internas
     private Rigidbody2D rig;
     private Animator anim;
+    private BoxCollider2D boxCollider; // Referência ao colisor do corpo
     private int currentJumpCount = 0;
+    private bool isGrounded;
+    private float horizontalInput;
 
-    
-    // Variável para a Layer do chão
-    public LayerMask groundLayer; 
-
-    // Start é chamado uma vez antes do primeiro frame
     void Start()
     {
         rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-
-        if (rig == null)
-        {
-            Debug.LogError("Rigidbody2D not found!");
-            enabled = false;
-        }
-
+        boxCollider = GetComponent<BoxCollider2D>(); // Pega o colisor automaticamente
         currentHealth = maxHealth;
-        isDead = false;
     }
 
-    // FixedUpdate
+    void Update()
+    {
+        if (isDead) return;
+
+        horizontalInput = Input.GetAxisRaw("Horizontal"); 
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            Jump();
+        }
+
+        // Atualiza Animator
+        anim.SetBool("isGrounded", isGrounded);
+        anim.SetBool("walk", horizontalInput != 0 && isGrounded);
+        anim.SetBool("jump", !isGrounded && rig.linearVelocity.y > 0.1f); 
+        anim.SetFloat("velocityY", rig.linearVelocity.y);
+
+        // Vira o personagem
+        if (horizontalInput > 0) transform.eulerAngles = Vector3.zero;
+        else if (horizontalInput < 0) transform.eulerAngles = new Vector3(0, 180, 0);
+    }
+
     void FixedUpdate()
     {
-        // Não se mova se estiver morto
         if (isDead)
         {
-            rig.linearVelocity = new Vector2(0, rig.linearVelocity.y);
-            anim.SetBool("walk", false);
+            rig.linearVelocity = Vector2.zero;
             return;
         }
 
+        CheckGround();
         Move();
     }
 
-    // Update
-    void Update()
+    void CheckGround()
     {
-        // Não pule se estiver morto
-        if (isDead) return; 
+        // Cria uma caixa do tamanho do colisor do player e projeta ela levemente para baixo
+        // Parâmetros: Centro, Tamanho, Angulo, Direção, Distância Extra, Layer
+        RaycastHit2D hit = Physics2D.BoxCast(
+            boxCollider.bounds.center, 
+            boxCollider.bounds.size, 
+            0f, 
+            Vector2.down, 
+            0.1f, 
+            groundLayer
+        );
 
-        JumpInput();
-        anim.SetFloat("velocityY", rig.linearVelocity.y);
+        isGrounded = hit.collider != null;
+
+        if (isGrounded)
+        {
+            currentJumpCount = 0;
+        }
     }
 
     void Move()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-
         rig.linearVelocity = new Vector2(horizontalInput * Speed, rig.linearVelocity.y);
+    }
 
-       if(horizontalInput > 0f)
-       {
-        anim.SetBool("walk", true);
-        transform.eulerAngles = new Vector3(0f, 0f, 0f);
-       }
-
-       if(horizontalInput < 0f)
-       {
-        anim.SetBool("walk", true);
-        transform.eulerAngles = new Vector3(0f, 180f, 0f);
-       }
-
-       if(horizontalInput == 0f)
-       {
-        anim.SetBool("walk", false);
-       }
-       }
-
-    void JumpInput()
+    void Jump()
     {
-        if (Input.GetButtonDown("Jump"))
+        if (currentJumpCount < maxJumps)
         {
-            if (currentJumpCount < maxJumps)
-            {
-                rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
-                rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
-                currentJumpCount++;
-                anim.SetBool("jump", true);
-            }
+            rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
+            rig.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
+            currentJumpCount++;
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        // Checagem de colisão com o chão
-        if(collision.gameObject.layer == 6) // Layer 6 deve ser "Ground"
-        {
-            currentJumpCount = 0;
-            anim.SetBool("jump", false);
-        }
-    }
-
-    // DANO E VIDA
     public void TakeDamage(int damage)
     {
-        // Se já estiver morto, não faça nada
         if (isDead) return;
 
-        // Reduz a vida
         currentHealth -= damage;
-        
-        Debug.Log("Player Health: " + currentHealth);
+        anim.SetTrigger("takeDamage"); 
 
         if (currentHealth <= 0)
         {
-            currentHealth = 0;
             Die();
-        }
-        else
-        {
-            // Dispara o Trigger da sua animação de dano
-            anim.SetTrigger("takeDamage"); // <-- MUDE "takeDamage" para o nome do seu trigger
         }
     }
 
     private void Die()
     {
         isDead = true;
-        anim.SetTrigger("death"); // Dispara a animação de morte
-
-        // Desativa o colisor do jogador
-        GetComponent<Collider2D>().enabled = false;
+        anim.SetTrigger("death");
         
-        // Para o jogador completamente
         rig.linearVelocity = Vector2.zero;
-        rig.gravityScale = 0f; // Impede que ele caia após morrer
+        rig.gravityScale = 0f;
+        boxCollider.enabled = false;
+        this.enabled = false; 
 
-        // Inicia a rotina para reiniciar o nível após um atraso
-        StartCoroutine(HandleDeath(2f)); // Espera 2 segundos
+        StartCoroutine(HandleDeath(2f));
     }
-
-
-    /// Corotina para esperar um tempo e depois reiniciar a cena.
 
     private IEnumerator HandleDeath(float delay)
     {
         yield return new WaitForSeconds(delay);
-        
-        // Recarrega a cena atual
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    
-
+    // Visualização para debug (aparece no editor quando seleciona o player)
+    void OnDrawGizmos()
+    {
+        if (boxCollider != null)
+        {
+            Gizmos.color = Color.green;
+            // Desenha onde o BoxCast está testando o chão
+            Gizmos.DrawWireCube(boxCollider.bounds.center + Vector3.down * 0.1f, boxCollider.bounds.size);
+        }
+    }
 }
-
