@@ -67520,6 +67520,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7024374691415416346, guid: 1f3609bfae4f87f43bde5ae9ea9b4bbb, type: 3}
+      propertyPath: maxHealth
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 9115839046924293114, guid: 1f3609bfae4f87f43bde5ae9ea9b4bbb, type: 3}
       propertyPath: m_Name
       value: Rift
@@ -67547,11 +67551,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3014006845820116749, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.245
+      value: 0.413
       objectReference: {fileID: 0}
     - target: {fileID: 3014006845820116749, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.011
+      value: -0.009
       objectReference: {fileID: 0}
     - target: {fileID: 3132473608731109747, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.x
