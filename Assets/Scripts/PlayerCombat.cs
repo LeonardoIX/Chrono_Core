@@ -4,18 +4,22 @@ using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
 {
+    [Header("Referências")]
     public Animator animator;
     public Transform attackPoint;
-    public float attackRange = 0.5f;
+    private scrPlayer playerScript; // Para verificar se está morto
+
+    [Header("Configuração do Ataque")]
     public LayerMask enemyLayers;
     public int attackDamage = 40;
     
-    // Variáveis de Combo
-    private int comboStep = 0; // 0 = parado, 1 = atk1, 2 = atk2
-    private float lastClickedTime = 0f;
-    public float maxComboDelay = 1f; // Tempo máximo entre cliques para contar como combo
+    // MUDANÇA AQUI: De Raio (float) para Tamanho (Vector2 = Largura e Altura)
+    public Vector2 attackSize = new Vector2(1f, 1f); 
 
-    private scrPlayer playerScript;
+    [Header("Configuração do Combo")]
+    public float maxComboDelay = 1f;
+    private int comboStep = 0; 
+    private float lastClickedTime = 0f;
 
     void Start()
     {
@@ -24,60 +28,62 @@ public class PlayerCombat : MonoBehaviour
 
     void Update()
     {
+        // Não ataca se estiver morto
         if (playerScript != null && playerScript.isDead) return;
 
-        // Se clicar no botão de ataque
+        // Input de Ataque
         if(Input.GetMouseButtonDown(0))
         {
             lastClickedTime = Time.time;
-            comboStep++; // Aumenta o passo do combo
+            comboStep++; 
 
-            // Limita o combo a 2 passos (já que você tem Attack1 e Attack2)
-            // Se quiser 3 ataques, mude para 3
+            // Limita o combo a 2 passos (Ataque 1 e Ataque 2)
             if (comboStep > 2) 
             {
-                comboStep = 1; // Reseta para o primeiro ataque se spammar
+                comboStep = 1; 
             }
 
             animator.SetInteger("ComboStep", comboStep);
-        }
-
-        // Opcional: Resetar se passar muito tempo sem atacar (segurança)
-        if (Time.time - lastClickedTime > maxComboDelay && comboStep != 0)
-        {
-           // Nota: Geralmente preferimos resetar via Animation Event (veja passo 3),
-           // mas isso aqui previne bugs se a animação travar.
-           // EndCombo(); 
         }
     }
 
     // --- EVENTOS DE ANIMAÇÃO ---
 
-    // ESSA FUNÇÃO DEVE SER CHAMADA NO FIM DA ANIMAÇÃO (Animation Event)
+    // Chamado no FINAL das animações de ataque (Animation Event)
     public void EndCombo()
     {
         comboStep = 0;
         animator.SetInteger("ComboStep", 0);
     }
 
-    // ESSA FUNÇÃO JÁ EXISTIA (Dano)
+    // Chamado no MOMENTO DO GOLPE (Animation Event)
     public void TriggerAttackDamage()
     {
         if (attackPoint == null) return;
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+
+        // MUDANÇA AQUI: Usando OverlapBox em vez de Circle
+        // Parâmetros: Ponto Central, Tamanho (X, Y), Ângulo, Camada
+        Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(attackPoint.position, attackSize, 0f, enemyLayers);
+
         foreach(Collider2D enemy in hitEnemies)
         {
-            // Verifique se o script do inimigo se chama "Enemy" mesmo, ou ajuste aqui
-            if(enemy.GetComponent<Enemy>() != null)
+            // Tenta pegar o script do inimigo
+            Enemy enemyScript = enemy.GetComponent<Enemy>();
+            
+            if(enemyScript != null)
             {
-                enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
+                enemyScript.TakeDamage(attackDamage);
             }
         }
     }
 
+    // Desenha o quadrado vermelho na tela para você ajustar (Gizmos)
     void OnDrawGizmosSelected()
     {
         if(attackPoint == null) return;
-        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+        
+        Gizmos.color = Color.red;
+        // Desenha o cubo (retângulo) em vez da esfera
+        Gizmos.DrawWireCube(attackPoint.position, attackSize);
     }
 }

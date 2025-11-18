@@ -67551,11 +67551,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3014006845820116749, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.413
+      value: 0.276
       objectReference: {fileID: 0}
     - target: {fileID: 3014006845820116749, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.009
+      value: -0.007
       objectReference: {fileID: 0}
     - target: {fileID: 3132473608731109747, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.x
@@ -67596,6 +67596,14 @@ PrefabInstance:
     - target: {fileID: 3132473608731109747, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4389728152627654869, guid: 1013af9248cad504b869bedc265e3069, type: 3}
+      propertyPath: attackDamage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4389728152627654869, guid: 1013af9248cad504b869bedc265e3069, type: 3}
+      propertyPath: attackSize.x
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4610288661693122349, guid: 1013af9248cad504b869bedc265e3069, type: 3}
       propertyPath: m_LocalPosition.x
