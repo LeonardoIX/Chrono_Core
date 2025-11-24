@@ -31,9 +31,15 @@ public class EnemyAI : MonoBehaviour
     
     // Variável para corrigir o problema de escala (tamanho)
     private Vector3 originalScale;
+    private EnemyDamageSound damageSound;
+    private EnemyAttackSound attackSound;
+
 
     void Start()
     {
+        damageSound = GetComponent<EnemyDamageSound>();
+        attackSound = GetComponent<EnemyAttackSound>();
+
         // Pega o Animator automaticamente se você esqueceu de arrastar
         if (animator == null) animator = GetComponent<Animator>();
         
@@ -88,20 +94,25 @@ public class EnemyAI : MonoBehaviour
         transform.position = Vector2.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
     }
 
-    void PerformAttack()
+void PerformAttack()
+{
+    // Alterna entre Ataque 1 e Ataque 2
+    if (!useSecondAttack)
     {
-        // Alterna entre Ataque 1 e Ataque 2
-        if (!useSecondAttack)
-        {
-            animator.SetTrigger("Attack1");
-            useSecondAttack = true; 
-        }
-        else
-        {
-            animator.SetTrigger("Attack2");
-            useSecondAttack = false; 
-        }
+        animator.SetTrigger("Attack1");
+        useSecondAttack = true; 
     }
+    else
+    {
+        animator.SetTrigger("Attack2");
+        useSecondAttack = false; 
+    }
+
+    // 🔥 Toca o som de ataque no momento que a animação começar
+    if (attackSound != null)
+        attackSound.PlayAttackSound();
+}
+
 
     // --- EVENTO DE ANIMAÇÃO ---
     // Lembre-se de colocar esse evento nas animações de ataque do inimigo!
@@ -124,28 +135,34 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int dmg)
+	public void TakeDamage(int dmg)
     {
         if (isDead) return;
 
+        // Som de dano (se tiver script separado)
+        if (damageSound != null) damageSound.PlayDamageSound();
+
         currentHealth -= dmg;
-        animator.SetTrigger("Hurt"); 
+        if(animator != null) animator.SetTrigger("Hurt");
 
         if (currentHealth <= 0)
         {
-            Die();
+            isDead = true; // Trava lógica interna
+            
+            // --- AQUI ESTÁ A MUDANÇA ---
+            // Chama o script externo de morte
+            EnemyDeath deathScript = GetComponent<EnemyDeath>();
+            
+            if (deathScript != null)
+            {
+                deathScript.Die();
+            }
+            else
+            {
+                // Backup caso tenha esquecido de colocar o script EnemyDeath
+                Destroy(gameObject); 
+            }
         }
-    }
-
-    void Die()
-    {
-        isDead = true;
-        animator.SetBool("IsDead", true); 
-        
-        // Desliga colisão e gravidade (opcional) para não atrapalhar
-        GetComponent<Collider2D>().enabled = false;
-        GetComponent<Rigidbody2D>().simulated = false; // Se tiver Rigidbody
-        this.enabled = false; 
     }
 
     void LookAtPlayer()

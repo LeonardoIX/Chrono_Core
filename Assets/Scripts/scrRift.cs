@@ -118,6 +118,7 @@ public class EnemyFollow : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(groundCheck.position, 0.1f);
         }
+        
     }
 }
 

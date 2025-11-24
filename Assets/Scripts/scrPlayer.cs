@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 public class scrPlayer : MonoBehaviour
 {
     [Header("Movement Properties")]
-    public float Speed = 5f;
+    public float Speed = 4f;
     public float JumpForce = 10f;
     public int maxJumps = 2;
 
@@ -104,36 +104,21 @@ public class scrPlayer : MonoBehaviour
     }
 
     public void TakeDamage(int damage)
+{
+    if (isDead) return;
+
+    currentHealth -= damage;
+
+    // 🔥 CHAMA O SOM DE DANO
+    GetComponent<DamageSound>().PlayDamageSound();
+    anim.SetTrigger("takeDamage"); 
+
+    if (currentHealth <= 0)
     {
-        if (isDead) return;
+        GetComponent<PlayerDeath>().Die();
 
-        currentHealth -= damage;
-        anim.SetTrigger("takeDamage"); 
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
     }
-
-    private void Die()
-    {
-        isDead = true;
-        anim.SetTrigger("death");
-        
-        rig.linearVelocity = Vector2.zero;
-        rig.gravityScale = 0f;
-        boxCollider.enabled = false;
-        this.enabled = false; 
-
-        StartCoroutine(HandleDeath(2f));
-    }
-
-    private IEnumerator HandleDeath(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
+}
 
     // Visualização para debug (aparece no editor quando seleciona o player)
     void OnDrawGizmos()
