@@ -7,7 +7,7 @@ public class scrPlayer : MonoBehaviour
     [Header("Movement Properties")]
     public float Speed = 5f;
     public float JumpForce = 10f;
-    public int maxJumps = 2;
+    public int maxJumps = 1;
 
     [Header("Detection")]
     public LayerMask groundLayer; // Configure isso no Inspector!
