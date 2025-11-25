@@ -8,119 +8,243 @@ public class EnemyAI : MonoBehaviour
     public Transform player;
     public Animator animator;
     public Transform attackPoint;
+    public Transform groundCheck;
+
+    [Header("Detecção")]
+    public float visionRange = 15f;
+    public float losePlayerRange = 20f;
+    public LayerMask groundLayer;
+    public LayerMask obstacleLayer;
 
     [Header("Movimento")]
-    public float moveSpeed = 3f;
-    public float stopDistance = 1.5f; // Distância que ele para de andar
-    public float attackRange = 1.0f;  // Distância que ele decide atacar
+    public float moveSpeed = 5f;
+    public float stopDistance = 1.5f;
+    public float attackRange = 1.0f;
+
+    [Header("Pulo Inteligente")]
+    public float jumpForce = 16f;
+    public float jumpCooldown = 0.5f;
+    private float lastJumpTime = 0f;
 
     [Header("Combate")]
     public int damage = 10;
-    public float attackCooldown = 2f; // Tempo de espera entre ataques
-    public Vector2 attackSize = new Vector2(1f, 1f); // Tamanho da hitbox
+    public float attackCooldown = 2f;
+    public Vector2 attackSize = new Vector2(1f, 1f);
     public LayerMask playerLayer;
 
     [Header("Vida")]
     public int maxHealth = 100;
     private int currentHealth;
 
-    // Variáveis de Controle
+    [Header("Sons do Inimigo")]
+    public AudioClip somAtaque;
+    public AudioClip somDano;
+    public AudioClip somMorte;
+    [Range(0f, 1f)] public float volumeAtaque = 0.7f;
+    [Range(0f, 1f)] public float volumeDano = 0.8f;
+    [Range(0f, 1f)] public float volumeMorte = 1f;
+
+    private enum EnemyState { Idle, Chasing, Attacking, Dead }
+    private EnemyState currentState = EnemyState.Idle;
+
+    private Rigidbody2D rig;
     private float nextAttackTime = 0f;
-    private bool useSecondAttack = false; 
+    private bool isGrounded;
     private bool isDead = false;
-    
-    // Variável para corrigir o problema de escala (tamanho)
+    private bool needsToJump = false;
+
     private Vector3 originalScale;
+    private float lastPosX = 0f;
+    private float stuckTimer = 0f;
 
     void Start()
     {
-        // Pega o Animator automaticamente se você esqueceu de arrastar
-        if (animator == null) animator = GetComponent<Animator>();
-        
+        rig = GetComponent<Rigidbody2D>();
         currentHealth = maxHealth;
-        
-        // Tenta achar o player automaticamente pela Tag se estiver vazio
-        if (player == null) 
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) player = playerObj.transform;
-        }
 
-        // SALVA O TAMANHO QUE VOCÊ DEFINIU NA UNITY
-        // Isso impede que ele fique minúsculo quando o jogo começa
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player").transform;
+
         originalScale = transform.localScale;
+        lastPosX = transform.position.x;
     }
 
     void Update()
     {
-        if (isDead || player == null) return;
+        if (isDead) return;
 
-        // Calcula distância até o player
-        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+        CheckGround();
 
-        // 1. Lógica de Movimento
-        if (distanceToPlayer > stopDistance)
+        float dist = Vector2.Distance(transform.position, player.position);
+
+        switch (currentState)
         {
-            MoveTowardsPlayer();
-            animator.SetBool("walk", true);
+            case EnemyState.Idle:
+                animator.SetBool("walk", false);
+
+                if (dist <= visionRange)
+                    currentState = EnemyState.Chasing;
+                break;
+
+            case EnemyState.Chasing:
+                HandleChasing(dist);
+                break;
+
+            case EnemyState.Attacking:
+                HandleAttacking(dist);
+                break;
         }
-        else
+
+        LookAtPlayer();
+    }
+
+    void FixedUpdate()
+    {
+        if (currentState == EnemyState.Chasing)
+            DetectStuck();
+    }
+
+    void HandleChasing(float dist)
+    {
+        if (dist > losePlayerRange)
         {
-            // Parar de andar
             animator.SetBool("walk", false);
-            
-            // 2. Lógica de Ataque
-            if (distanceToPlayer <= attackRange && Time.time >= nextAttackTime)
+            currentState = EnemyState.Idle;
+            return;
+        }
+
+        if (dist <= stopDistance)
+        {
+            animator.SetBool("walk", false);
+            currentState = EnemyState.Attacking;
+            return;
+        }
+
+        animator.SetBool("walk", true);
+
+        MoveTowardsPlayer();
+        CheckForObstacles();
+    }
+
+    void HandleAttacking(float dist)
+    {
+        animator.SetBool("walk", false);
+
+        if (dist > attackRange)
+        {
+            currentState = EnemyState.Chasing;
+            return;
+        }
+
+        if (Time.time >= nextAttackTime)
+        {
+            animator.SetTrigger("Attack1");
+            nextAttackTime = Time.time + attackCooldown;
+
+            // SOM DE ATAQUE
+            if (somAtaque != null)
             {
-                PerformAttack();
-                nextAttackTime = Time.time + attackCooldown;
+                AudioSource.PlayClipAtPoint(somAtaque, transform.position, volumeAtaque);
             }
         }
-        
-        // Virar o sprite para o lado do jogador
-        LookAtPlayer();
     }
 
     void MoveTowardsPlayer()
     {
-        // Move apenas no eixo X (para não voar)
-        Vector2 target = new Vector2(player.position.x, transform.position.y);
-        transform.position = Vector2.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
-    }
+        float direction = Mathf.Sign(player.position.x - transform.position.x);
 
-    void PerformAttack()
-    {
-        // Alterna entre Ataque 1 e Ataque 2
-        if (!useSecondAttack)
+        if (IsOnSlope())
         {
-            animator.SetTrigger("Attack1");
-            useSecondAttack = true; 
+            rig.linearVelocity = new Vector2(direction * moveSpeed, rig.linearVelocity.y);
         }
         else
         {
-            animator.SetTrigger("Attack2");
-            useSecondAttack = false; 
+            rig.linearVelocity = new Vector2(direction * moveSpeed, rig.linearVelocity.y);
+        }
+
+        if (needsToJump && isGrounded && Time.time >= lastJumpTime + jumpCooldown)
+        {
+            Jump();
+            needsToJump = false;
         }
     }
 
-    // --- EVENTO DE ANIMAÇÃO ---
-    // Lembre-se de colocar esse evento nas animações de ataque do inimigo!
+    void CheckForObstacles()
+    {
+        float direction = Mathf.Sign(player.position.x - transform.position.x);
+
+        Vector2 origin = new Vector2(transform.position.x, transform.position.y + 0.4f);
+
+        RaycastHit2D wallHit = Physics2D.Raycast(origin, Vector2.right * direction, 0.5f, obstacleLayer);
+
+        Vector2 forward = new Vector2(transform.position.x + direction * 0.6f, transform.position.y);
+        RaycastHit2D groundAhead = Physics2D.Raycast(forward, Vector2.down, 1f, groundLayer);
+
+        needsToJump = false;
+
+        if (wallHit.collider != null && !IsOnSlope())
+            needsToJump = true;
+
+        if (groundAhead.collider == null)
+            needsToJump = true;
+    }
+
+    void DetectStuck()
+    {
+        if (Mathf.Abs(transform.position.x - lastPosX) < 0.01f)
+        {
+            stuckTimer += Time.fixedDeltaTime;
+
+            if (stuckTimer > 0.5f && isGrounded)
+            {
+                Jump();
+                stuckTimer = 0f;
+            }
+        }
+        else
+        {
+            stuckTimer = 0f;
+        }
+
+        lastPosX = transform.position.x;
+    }
+
+    bool IsOnSlope()
+    {
+        Vector2 pos = transform.position;
+        RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.down, 1f, groundLayer);
+
+        if (hit.collider == null)
+            return false;
+
+        float angle = Vector2.Angle(hit.normal, Vector2.up);
+
+        return angle > 0f && angle <= 40f;
+    }
+
+    void Jump()
+    {
+        rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0);
+        rig.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        lastJumpTime = Time.time;
+    }
+
+    void CheckGround()
+    {
+        if (groundCheck != null)
+            isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        else
+            isGrounded = Physics2D.OverlapCircle(transform.position + Vector3.down * 0.5f, 0.2f, groundLayer);
+    }
+
     public void TriggerEnemyDamage()
     {
-        if (attackPoint == null) return;
+        Collider2D hit = Physics2D.OverlapBox(attackPoint.position, attackSize, 0f, playerLayer);
 
-        // Cria a caixa de dano
-        Collider2D hitPlayer = Physics2D.OverlapBox(attackPoint.position, attackSize, 0f, playerLayer);
-        
-        if (hitPlayer != null)
+        if (hit != null)
         {
-            // Procura pelo script de vida do JOGADOR (scrPlayer)
-            scrPlayer playerScript = hitPlayer.GetComponent<scrPlayer>();
-            
-            if (playerScript != null)
-            {
-                playerScript.TakeDamage(damage);
-            }
+            scrPlayer p = hit.GetComponent<scrPlayer>();
+            p?.TakeDamage(damage);
         }
     }
 
@@ -129,49 +253,71 @@ public class EnemyAI : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= dmg;
-        animator.SetTrigger("Hurt"); 
+        animator.SetTrigger("Hurt");
+
+        // SOM DE DANO
+        if (somDano != null)
+        {
+            AudioSource.PlayClipAtPoint(somDano, transform.position, volumeDano);
+        }
+
+        if (currentState == EnemyState.Idle)
+            currentState = EnemyState.Chasing;
 
         if (currentHealth <= 0)
-        {
             Die();
-        }
     }
 
     void Die()
     {
         isDead = true;
-        animator.SetBool("IsDead", true); 
-        
-        // Desliga colisão e gravidade (opcional) para não atrapalhar
-        GetComponent<Collider2D>().enabled = false;
-        GetComponent<Rigidbody2D>().simulated = false; // Se tiver Rigidbody
-        this.enabled = false; 
+        currentState = EnemyState.Dead;
+
+        animator.SetBool("IsDead", true);
+        animator.SetBool("walk", false);
+
+        // SOM DE MORTE
+        if (somMorte != null)
+        {
+            AudioSource.PlayClipAtPoint(somMorte, transform.position, volumeMorte);
+        }
+
+        // Desliga física
+        if (rig != null)
+        {
+            rig.linearVelocity = Vector2.zero;
+            rig.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        // Desliga colisão
+        Collider2D coll = GetComponent<Collider2D>();
+        if (coll != null) coll.enabled = false;
+
+        // Desliga o script
+        this.enabled = false;
+
+        // Destrói depois de um tempo
+        Destroy(gameObject, 1.5f);
     }
 
     void LookAtPlayer()
     {
-        // Usa o tamanho original salvo no Start para não encolher o inimigo
+        if (player == null) return;
+
         float sizeX = Mathf.Abs(originalScale.x);
 
         if (player.position.x > transform.position.x)
-        {
-            // Olha para direita (X positivo)
             transform.localScale = new Vector3(sizeX, originalScale.y, originalScale.z);
-        }
-        else if (player.position.x < transform.position.x)
-        {
-            // Olha para esquerda (X negativo)
+        else
             transform.localScale = new Vector3(-sizeX, originalScale.y, originalScale.z);
-        }
     }
 
     void OnDrawGizmosSelected()
     {
-        if (attackPoint == null) return;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(attackPoint.position, attackSize);
-        
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, stopDistance);
+        if (attackPoint != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(attackPoint.position, attackSize);
+        }
     }
 }

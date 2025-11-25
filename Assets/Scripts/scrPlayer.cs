@@ -10,27 +10,41 @@ public class scrPlayer : MonoBehaviour
     public int maxJumps = 2;
 
     [Header("Detection")]
-    public LayerMask groundLayer; // Configure isso no Inspector!
+    public LayerMask groundLayer;
 
     [Header("Health & Damage")]
     public int maxHealth = 5;
     private int currentHealth;
     public bool isDead = false;
 
+    [Header("Sons do Player")]
+    public AudioClip somPulo;
+    public AudioClip somDano;
+    public AudioClip somMorte;
+    [Range(0f, 1f)] public float volumePulo = 0.6f;
+    [Range(0f, 1f)] public float volumeDano = 0.8f;
+    [Range(0f, 1f)] public float volumeMorte = 1f;
+
     // Variáveis internas
     private Rigidbody2D rig;
     private Animator anim;
-    private BoxCollider2D boxCollider; // Referência ao colisor do corpo
+    private BoxCollider2D boxCollider;
     private int currentJumpCount = 0;
     private bool isGrounded;
     private float horizontalInput;
+
+    // Para o som de passos
+    private FootstepSimples footstepScript;
 
     void Start()
     {
         rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        boxCollider = GetComponent<BoxCollider2D>(); // Pega o colisor automaticamente
+        boxCollider = GetComponent<BoxCollider2D>();
         currentHealth = maxHealth;
+
+        // Pega o script de passos se existir
+        footstepScript = GetComponent<FootstepSimples>();
     }
 
     void Update()
@@ -69,8 +83,6 @@ public class scrPlayer : MonoBehaviour
 
     void CheckGround()
     {
-        // Cria uma caixa do tamanho do colisor do player e projeta ela levemente para baixo
-        // Parâmetros: Centro, Tamanho, Angulo, Direção, Distância Extra, Layer
         RaycastHit2D hit = Physics2D.BoxCast(
             boxCollider.bounds.center, 
             boxCollider.bounds.size, 
@@ -100,6 +112,12 @@ public class scrPlayer : MonoBehaviour
             rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
             rig.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             currentJumpCount++;
+
+            // SOM DE PULO
+            if (somPulo != null)
+            {
+                AudioSource.PlayClipAtPoint(somPulo, transform.position, volumePulo);
+            }
         }
     }
 
@@ -108,7 +126,13 @@ public class scrPlayer : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= damage;
-        anim.SetTrigger("takeDamage"); 
+        anim.SetTrigger("takeDamage");
+
+        // SOM DE DANO
+        if (somDano != null)
+        {
+            AudioSource.PlayClipAtPoint(somDano, transform.position, volumeDano);
+        }
 
         if (currentHealth <= 0)
         {
@@ -121,10 +145,17 @@ public class scrPlayer : MonoBehaviour
         isDead = true;
         anim.SetTrigger("death");
         
+        // SOM DE MORTE
+        if (somMorte != null)
+        {
+            AudioSource.PlayClipAtPoint(somMorte, transform.position, volumeMorte);
+        }
+
         rig.linearVelocity = Vector2.zero;
         rig.gravityScale = 0f;
+        rig.bodyType = RigidbodyType2D.Kinematic;
         boxCollider.enabled = false;
-        this.enabled = false; 
+        this.enabled = false;
 
         StartCoroutine(HandleDeath(2f));
     }
@@ -135,13 +166,11 @@ public class scrPlayer : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    // Visualização para debug (aparece no editor quando seleciona o player)
     void OnDrawGizmos()
     {
         if (boxCollider != null)
         {
             Gizmos.color = Color.green;
-            // Desenha onde o BoxCast está testando o chão
             Gizmos.DrawWireCube(boxCollider.bounds.center + Vector3.down * 0.1f, boxCollider.bounds.size);
         }
     }

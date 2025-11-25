@@ -7,14 +7,16 @@ public class PlayerCombat : MonoBehaviour
     [Header("Referências")]
     public Animator animator;
     public Transform attackPoint;
-    private scrPlayer playerScript; // Para verificar se está morto
+    private scrPlayer playerScript;
 
     [Header("Configuração do Ataque")]
     public LayerMask enemyLayers;
     public int attackDamage = 40;
-    
-    // MUDANÇA AQUI: De Raio (float) para Tamanho (Vector2 = Largura e Altura)
     public Vector2 attackSize = new Vector2(1f, 1f); 
+
+    [Header("Som de Ataque")]
+    public AudioClip somAtaque;
+    [Range(0f, 1f)] public float volumeAtaque = 0.7f;
 
     [Header("Configuração do Combo")]
     public float maxComboDelay = 1f;
@@ -28,7 +30,6 @@ public class PlayerCombat : MonoBehaviour
 
     void Update()
     {
-        // Não ataca se estiver morto
         if (playerScript != null && playerScript.isDead) return;
 
         // Input de Ataque
@@ -37,37 +38,35 @@ public class PlayerCombat : MonoBehaviour
             lastClickedTime = Time.time;
             comboStep++; 
 
-            // Limita o combo a 2 passos (Ataque 1 e Ataque 2)
             if (comboStep > 2) 
             {
                 comboStep = 1; 
             }
 
             animator.SetInteger("ComboStep", comboStep);
+
+            // SOM DE ATAQUE
+            if (somAtaque != null)
+            {
+                AudioSource.PlayClipAtPoint(somAtaque, transform.position, volumeAtaque);
+            }
         }
     }
 
-    // --- EVENTOS DE ANIMAÇÃO ---
-
-    // Chamado no FINAL das animações de ataque (Animation Event)
     public void EndCombo()
     {
         comboStep = 0;
         animator.SetInteger("ComboStep", 0);
     }
 
-    // Chamado no MOMENTO DO GOLPE (Animation Event)
     public void TriggerAttackDamage()
     {
         if (attackPoint == null) return;
 
-        // MUDANÇA AQUI: Usando OverlapBox em vez de Circle
-        // Parâmetros: Ponto Central, Tamanho (X, Y), Ângulo, Camada
         Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(attackPoint.position, attackSize, 0f, enemyLayers);
 
         foreach(Collider2D enemy in hitEnemies)
         {
-            // Tenta pegar o script do inimigo
             EnemyAI enemyScript = enemy.GetComponent<EnemyAI>();
             
             if(enemyScript != null)
@@ -77,13 +76,11 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    // Desenha o quadrado vermelho na tela para você ajustar (Gizmos)
     void OnDrawGizmosSelected()
     {
         if(attackPoint == null) return;
         
         Gizmos.color = Color.red;
-        // Desenha o cubo (retângulo) em vez da esfera
         Gizmos.DrawWireCube(attackPoint.position, attackSize);
     }
 }
