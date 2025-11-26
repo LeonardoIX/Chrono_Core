@@ -9,6 +9,10 @@ public class EnemyAI : MonoBehaviour
     public Animator animator;
     public Transform attackPoint;
 
+    [Header("Detecção")]
+    public float detectionRange = 8f; // Distância para começar a seguir o player
+    private bool playerDetected = false; // Se o player foi detectado
+
     [Header("Movimento")]
     public float moveSpeed = 3f;
     public float stopDistance = 1.5f; // Distância que ele para de andar
@@ -58,27 +62,43 @@ public class EnemyAI : MonoBehaviour
         // Calcula distância até o player
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // 1. Lógica de Movimento
-        if (distanceToPlayer > stopDistance)
+        // SISTEMA DE DETECÇÃO
+        // Uma vez detectado, continua seguindo (não "desdetecta")
+        if (!playerDetected && distanceToPlayer <= detectionRange)
         {
-            MoveTowardsPlayer();
-            animator.SetBool("walk", true);
+            playerDetected = true;
+        }
+
+        // Só age se o player foi detectado
+        if (playerDetected)
+        {
+            // 1. Lógica de Movimento
+            if (distanceToPlayer > stopDistance)
+            {
+                MoveTowardsPlayer();
+                animator.SetBool("walk", true);
+            }
+            else
+            {
+                // Parar de andar
+                animator.SetBool("walk", false);
+                
+                // 2. Lógica de Ataque
+                if (distanceToPlayer <= attackRange && Time.time >= nextAttackTime)
+                {
+                    PerformAttack();
+                    nextAttackTime = Time.time + attackCooldown;
+                }
+            }
+            
+            // Virar o sprite para o lado do jogador
+            LookAtPlayer();
         }
         else
         {
-            // Parar de andar
+            // Inimigo em estado de espera (idle)
             animator.SetBool("walk", false);
-            
-            // 2. Lógica de Ataque
-            if (distanceToPlayer <= attackRange && Time.time >= nextAttackTime)
-            {
-                PerformAttack();
-                nextAttackTime = Time.time + attackCooldown;
-            }
         }
-        
-        // Virar o sprite para o lado do jogador
-        LookAtPlayer();
     }
 
     void MoveTowardsPlayer()
@@ -129,7 +149,11 @@ public class EnemyAI : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= dmg;
-        animator.SetTrigger("Hurt"); 
+        animator.SetTrigger("Hurt");
+        
+        // QUANDO LEVAR DANO, TAMBÉM ATIVA A DETECÇÃO
+        // Assim o inimigo reage mesmo se você atacar de longe
+        playerDetected = true;
 
         if (currentHealth <= 0)
         {
@@ -168,10 +192,17 @@ public class EnemyAI : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         if (attackPoint == null) return;
+        
+        // Hitbox de ataque (amarelo)
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(attackPoint.position, attackSize);
         
+        // Distância de parada (azul)
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, stopDistance);
+        
+        // RANGE DE DETECÇÃO (verde)
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
     }
 }
