@@ -64,7 +64,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -102,7 +102,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -134,8 +134,8 @@ TextureImporter:
         y: 195
         width: 20
         height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.5785996, y: 0.4649105}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -156,8 +156,8 @@ TextureImporter:
         y: 156
         width: 21
         height: 34
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.6283267, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -176,10 +176,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 118
-        width: 21
-        height: 23
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 24
+        height: 34
+      alignment: 9
+      pivot: {x: 0.5561431, y: 0.42734438}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -193,37 +193,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: small morun_3
-      rect:
-        serializedVersion: 2
-        x: 6
-        y: 139
-        width: 16
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 101b364d4d21989e0800000000000000
-      internalID: -1618741885757312767
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: small morun_4
       rect:
         serializedVersion: 2
         x: 0
         y: 78
-        width: 21
-        height: 24
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 22
+        height: 34
+      alignment: 9
+      pivot: {x: 0.6020786, y: 0.42734414}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -237,37 +215,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: small morun_5
-      rect:
-        serializedVersion: 2
-        x: 6
-        y: 100
-        width: 17
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b6815d0d192bfdec0800000000000000
-      internalID: -3539914442746292117
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: small morun_6
       rect:
         serializedVersion: 2
         x: 0
-        y: 37
+        y: 44
         width: 23
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 34
+      alignment: 9
+      pivot: {x: 0.5683484, y: 0.36805972}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -281,37 +237,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: small morun_7
-      rect:
-        serializedVersion: 2
-        x: 7
-        y: 23
-        width: 15
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f1cf0c86493233760800000000000000
-      internalID: 7436326530038430751
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: small morun_8
       rect:
         serializedVersion: 2
         x: 7
         y: 1
-        width: 13
-        height: 24
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 15
+        height: 38
+      alignment: 9
+      pivot: {x: 0.38022798, y: 0.3995335}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -324,33 +258,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: small morun_9
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 10
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bda924483b9ace7f0800000000000000
-      internalID: -581903663354438949
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 14f670471a1431f41aa732793da3b31d
     internalID: 0
     vertices: []
     indices: 
