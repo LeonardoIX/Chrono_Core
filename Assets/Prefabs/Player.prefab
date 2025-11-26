@@ -188,7 +188,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  maxHealth: 5
+  maxHealth: 10
   isDead: 0
 --- !u!95 &7849016030319488501
 Animator:
