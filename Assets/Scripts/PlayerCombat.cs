@@ -21,9 +21,20 @@ public class PlayerCombat : MonoBehaviour
     private int comboStep = 0; 
     private float lastClickedTime = 0f;
 
+    [Header("Sons de Ataque")]
+    public AudioClip[] attackSounds; // Array para múltiplos sons de ataque
+    private AudioSource audioSource;
+
     void Start()
     {
         playerScript = GetComponent<scrPlayer>();
+        audioSource = GetComponent<AudioSource>();
+        
+        // Se não tiver AudioSource, adiciona um
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     void Update()
@@ -61,6 +72,9 @@ public class PlayerCombat : MonoBehaviour
     {
         if (attackPoint == null) return;
 
+        // Toca som de ataque
+        PlayAttackSound();
+
         // MUDANÇA AQUI: Usando OverlapBox em vez de Circle
         // Parâmetros: Ponto Central, Tamanho (X, Y), Ângulo, Camada
         Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(attackPoint.position, attackSize, 0f, enemyLayers);
@@ -73,6 +87,20 @@ public class PlayerCombat : MonoBehaviour
             if(enemyScript != null)
             {
                 enemyScript.TakeDamage(attackDamage);
+            }
+        }
+    }
+
+    // Método para tocar som de ataque
+    private void PlayAttackSound()
+    {
+        if (attackSounds != null && attackSounds.Length > 0 && audioSource != null)
+        {
+            // Escolhe um som aleatório do array
+            AudioClip clip = attackSounds[Random.Range(0, attackSounds.Length)];
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
             }
         }
     }

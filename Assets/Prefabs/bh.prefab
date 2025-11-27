@@ -220,6 +220,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   maxHealth: 3
+  attackSounds:
+  - {fileID: 8300000, guid: 0f43271c8729fce1ea0c43762b24398c, type: 3}
+  deathSound: {fileID: 0}
+  walkSound: {fileID: 0}
+  hurtSound: {fileID: 0}
 --- !u!50 &4969836364024434785
 Rigidbody2D:
   serializedVersion: 5
