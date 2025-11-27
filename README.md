@@ -56,3 +56,24 @@ Implementação de inimigos, obstáculos e interações típicas do gênero.
 Sistema de transição entre cenas e fases.
 
 Organização do código em scripts C# integrados ao motor Unity
+
+Requisitos de hardware mínimos
+Sistema Operacional:
+Windows: Windows 7 SP1+, Windows 10 ou Windows 11 (versões de 64 bits)
+macOS: High Sierra 10.13+
+Processador:
+Arquitetura x64 com conjunto de instruções SSE2
+Memória RAM:
+Mínimo: 4 GB
+Recomendado: 8 GB
+Placa de Vídeo:
+Windows: GPUs compatíveis com DX10, DX11 e DX12
+macOS: GPUs compatíveis com a tecnologia Metal
+Armazenamento:
+Um disco de estado sólido (SSD) é recomendado. 
+
+Desenvolvedores:
+Leonardo Arantes Magnani Otaviano
+Enzo Maranezi
+Joao Pedro Carvalho Ferreira 
+Thyago Pereira De Carvalho
