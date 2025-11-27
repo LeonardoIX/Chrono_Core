@@ -28,6 +28,12 @@ public class EnemyAI : MonoBehaviour
     public int maxHealth = 100;
     private int currentHealth;
 
+    [Header("Sons do Inimigo")]
+    public AudioClip[] attackSounds;   // Array para sons de ataque (pode ter vários)
+    public AudioClip deathSound;       // Som ao morrer
+    public AudioClip walkSound;        // Som ao andar (loop)
+    public AudioClip hurtSound;        // Som ao levar dano
+
     // Variáveis de Controle
     private float nextAttackTime = 0f;
     private bool useSecondAttack = false; 
@@ -35,6 +41,11 @@ public class EnemyAI : MonoBehaviour
     
     // Variável para corrigir o problema de escala (tamanho)
     private Vector3 originalScale;
+
+    // AudioSources
+    private AudioSource audioSource;
+    private AudioSource walkAudioSource;
+    private bool wasWalking = false;
 
     void Start()
     {
@@ -53,6 +64,18 @@ public class EnemyAI : MonoBehaviour
         // SALVA O TAMANHO QUE VOCÊ DEFINIU NA UNITY
         // Isso impede que ele fique minúsculo quando o jogo começa
         originalScale = transform.localScale;
+
+        // Configura AudioSources
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // Cria AudioSource para andar (loop)
+        walkAudioSource = gameObject.AddComponent<AudioSource>();
+        walkAudioSource.loop = true;
+        walkAudioSource.clip = walkSound;
     }
 
     void Update()
@@ -69,6 +92,8 @@ public class EnemyAI : MonoBehaviour
             playerDetected = true;
         }
 
+        bool isWalking = false;
+
         // Só age se o player foi detectado
         if (playerDetected)
         {
@@ -77,6 +102,7 @@ public class EnemyAI : MonoBehaviour
             {
                 MoveTowardsPlayer();
                 animator.SetBool("walk", true);
+                isWalking = true;
             }
             else
             {
@@ -99,6 +125,9 @@ public class EnemyAI : MonoBehaviour
             // Inimigo em estado de espera (idle)
             animator.SetBool("walk", false);
         }
+
+        // Controla som de andar
+        HandleWalkSound(isWalking);
     }
 
     void MoveTowardsPlayer()
@@ -123,11 +152,37 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Controla o som de andar (loop)
+    void HandleWalkSound(bool isWalking)
+    {
+        if (isWalking && !wasWalking)
+        {
+            // Começou a andar
+            if (walkSound != null && walkAudioSource != null)
+            {
+                walkAudioSource.Play();
+            }
+        }
+        else if (!isWalking && wasWalking)
+        {
+            // Parou de andar
+            if (walkAudioSource != null)
+            {
+                walkAudioSource.Stop();
+            }
+        }
+
+        wasWalking = isWalking;
+    }
+
     // --- EVENTO DE ANIMAÇÃO ---
     // Lembre-se de colocar esse evento nas animações de ataque do inimigo!
     public void TriggerEnemyDamage()
     {
         if (attackPoint == null) return;
+
+        // Toca som de ataque
+        PlayAttackSound();
 
         // Cria a caixa de dano
         Collider2D hitPlayer = Physics2D.OverlapBox(attackPoint.position, attackSize, 0f, playerLayer);
@@ -144,12 +199,28 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Toca um som de ataque aleatório do array
+    private void PlayAttackSound()
+    {
+        if (attackSounds != null && attackSounds.Length > 0 && audioSource != null)
+        {
+            AudioClip clip = attackSounds[Random.Range(0, attackSounds.Length)];
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
+            }
+        }
+    }
+
     public void TakeDamage(int dmg)
     {
         if (isDead) return;
 
         currentHealth -= dmg;
         animator.SetTrigger("Hurt");
+        
+        // Toca som de dano
+        PlaySound(hurtSound);
         
         // QUANDO LEVAR DANO, TAMBÉM ATIVA A DETECÇÃO
         // Assim o inimigo reage mesmo se você atacar de longe
@@ -164,12 +235,30 @@ public class EnemyAI : MonoBehaviour
     void Die()
     {
         isDead = true;
-        animator.SetBool("IsDead", true); 
+        animator.SetBool("IsDead", true);
+
+        // Para o som de andar
+        if (walkAudioSource != null)
+        {
+            walkAudioSource.Stop();
+        }
+
+        // Toca som de morte
+        PlaySound(deathSound);
         
         // Desliga colisão e gravidade (opcional) para não atrapalhar
         GetComponent<Collider2D>().enabled = false;
         GetComponent<Rigidbody2D>().simulated = false; // Se tiver Rigidbody
         this.enabled = false; 
+    }
+
+    // Método auxiliar para tocar sons
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 
     void LookAtPlayer()

@@ -17,6 +17,15 @@ public class scrPlayer : MonoBehaviour
     private int currentHealth;
     public bool isDead = false;
 
+    [Header("Sons do Jogador")]
+    public AudioClip jumpSound;
+    public AudioClip walkSound;
+    public AudioClip damageSound;
+    public AudioClip deathSound;
+    
+    private AudioSource audioSource;
+    private AudioSource walkAudioSource; // AudioSource separado para o som de andar
+
     // Variáveis internas
     private Rigidbody2D rig;
     private Animator anim;
@@ -24,6 +33,7 @@ public class scrPlayer : MonoBehaviour
     private int currentJumpCount = 0;
     private bool isGrounded;
     private float horizontalInput;
+    private bool wasWalking = false; // Para controlar o som de andar
 
     void Start()
     {
@@ -31,6 +41,18 @@ public class scrPlayer : MonoBehaviour
         anim = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>(); // Pega o colisor automaticamente
         currentHealth = maxHealth;
+
+        // Configura AudioSource principal
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // Cria um segundo AudioSource para o som de andar (loop)
+        walkAudioSource = gameObject.AddComponent<AudioSource>();
+        walkAudioSource.loop = true;
+        walkAudioSource.clip = walkSound;
     }
 
     void Update()
@@ -43,6 +65,9 @@ public class scrPlayer : MonoBehaviour
         {
             Jump();
         }
+
+        // Controla som de andar
+        HandleWalkSound();
 
         // Atualiza Animator
         anim.SetBool("isGrounded", isGrounded);
@@ -100,7 +125,35 @@ public class scrPlayer : MonoBehaviour
             rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
             rig.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             currentJumpCount++;
+
+            // Toca som de pulo
+            PlaySound(jumpSound);
         }
+    }
+
+    // Controla o som de andar (loop)
+    void HandleWalkSound()
+    {
+        bool isWalking = horizontalInput != 0 && isGrounded;
+
+        if (isWalking && !wasWalking)
+        {
+            // Começou a andar
+            if (walkSound != null && walkAudioSource != null)
+            {
+                walkAudioSource.Play();
+            }
+        }
+        else if (!isWalking && wasWalking)
+        {
+            // Parou de andar
+            if (walkAudioSource != null)
+            {
+                walkAudioSource.Stop();
+            }
+        }
+
+        wasWalking = isWalking;
     }
 
     public void TakeDamage(int damage)
@@ -108,7 +161,10 @@ public class scrPlayer : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= damage;
-        anim.SetTrigger("takeDamage"); 
+        anim.SetTrigger("takeDamage");
+
+        // Toca som de dano
+        PlaySound(damageSound);
 
         if (currentHealth <= 0)
         {
@@ -124,7 +180,16 @@ public class scrPlayer : MonoBehaviour
         rig.linearVelocity = Vector2.zero;
         rig.gravityScale = 0f;
         boxCollider.enabled = false;
-        this.enabled = false; 
+        this.enabled = false;
+
+        // Para o som de andar se estiver tocando
+        if (walkAudioSource != null)
+        {
+            walkAudioSource.Stop();
+        }
+
+        // Toca som de morte
+        PlaySound(deathSound);
 
         StartCoroutine(HandleDeath(2f));
     }
@@ -133,6 +198,15 @@ public class scrPlayer : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // Método auxiliar para tocar sons
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 
     // Visualização para debug (aparece no editor quando seleciona o player)
